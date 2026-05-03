@@ -1,3 +1,4 @@
+// TODO(Ravel): Failed to fully resolve file: null cannot be cast to non-null type com.intellij.psi.PsiJavaCodeReferenceElement
 package cqb13.NumbyHack.modules.general;
 
 import java.util.ArrayList;
@@ -22,20 +23,20 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ComparatorBlock;
-import net.minecraft.block.ObserverBlock;
-import net.minecraft.block.SculkShriekerBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.CalibratedSculkSensorBlockEntity;
-import net.minecraft.block.entity.SculkSensorBlockEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComparatorBlock;
+import net.minecraft.world.level.block.ObserverBlock;
+import net.minecraft.world.level.block.SculkShriekerBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.CalibratedSculkSensorBlockEntity;
+import net.minecraft.world.level.block.entity.SculkSensorBlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 /**
  * made by cqb13
@@ -137,7 +138,7 @@ public class SculkRangeEsp extends Module {
 
     private final Set<BlockPos> positions = Collections.synchronizedSet(new HashSet<>());
     private final Set<FoundSensor> foundSensors = Collections.synchronizedSet(new HashSet<>());
-    Vec3d renderPos = new Vec3d(0, 0, 0);
+    Vec3 renderPos = new Vec3(0, 0, 0);
 
     public SculkRangeEsp() {
         super(NumbyHack.CATEGORY, "sculk-range-esp",
@@ -158,13 +159,13 @@ public class SculkRangeEsp extends Module {
 
     @EventHandler
     private void onPreTick(TickEvent.Pre event) {
-        if (mc.world == null || mc.player == null)
+        if (mc.level == null || mc.player == null)
             return;
-        AtomicReferenceArray<WorldChunk> chunks = mc.world.getChunkManager().chunks.chunks;
-        Set<WorldChunk> chunkSet = new HashSet<>();
+        AtomicReferenceArray<LevelChunk> chunks = mc.level.getChunkSource().storage.chunks;
+        Set<LevelChunk> chunkSet = new HashSet<>();
 
         for (int i = 0; i < chunks.length(); i++) {
-            WorldChunk chunk = chunks.get(i);
+            LevelChunk chunk = chunks.get(i);
             if (chunk != null) {
                 chunkSet.add(chunk);
             }
@@ -173,11 +174,11 @@ public class SculkRangeEsp extends Module {
         chunkSet.forEach(chunk -> extracted(chunk));
     }
 
-    private void extracted(WorldChunk chunk) {
+    private void extracted(LevelChunk chunk) {
         List<BlockEntity> blockEntities = new ArrayList<>(chunk.getBlockEntities().values());
 
         for (BlockEntity blockEntity : blockEntities) {
-            BlockPos pos = blockEntity.getPos();
+            BlockPos pos = blockEntity.getBlockPos();
 
             if (positions.contains(pos)) {
                 continue;
@@ -193,8 +194,8 @@ public class SculkRangeEsp extends Module {
                 continue;
             }
 
-            boolean hasOutput = hasRedstoneOutput(chunk.getWorld(), pos);
-            boolean hasShriekerInRange = hasShriekerInRange(chunk.getWorld(), pos, sensor);
+            boolean hasOutput = hasRedstoneOutput(chunk.getLevel(), pos);
+            boolean hasShriekerInRange = hasShriekerInRange(chunk.getLevel(), pos, sensor);
 
             foundSensors.add(new FoundSensor(sensor, pos, hasOutput, hasShriekerInRange));
             positions.add(pos);
@@ -202,7 +203,7 @@ public class SculkRangeEsp extends Module {
         }
     }
 
-    private boolean hasRedstoneOutput(World world, BlockPos sensorPos) {
+    private boolean hasRedstoneOutput(Level world, BlockPos sensorPos) {
         for (Direction dir : Direction.values()) {
             BlockPos adjacentPos = sensorPos.offset(dir);
             BlockState state = world.getBlockState(adjacentPos);

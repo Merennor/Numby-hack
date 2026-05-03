@@ -2,8 +2,8 @@ package cqb13.NumbyHack.utils;
 
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.utils.render.color.Color;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 public class RoundRenderUtils {
     private RoundRenderUtils() {
@@ -17,8 +17,8 @@ public class RoundRenderUtils {
         int segments = (int) Math.ceil(2 * Math.PI * radius / maxSegmentLength);
         segments = Math.max(16, segments);
 
-        Vec3d[] outerPts = new Vec3d[segments];
-        Vec3d[] innerPts = new Vec3d[segments];
+        Vec3[] outerPts = new Vec3[segments];
+        Vec3[] innerPts = new Vec3[segments];
 
         double outerRadius = radius + thickness / 2.0;
         double innerRadius = radius - thickness / 2.0;
@@ -32,12 +32,12 @@ public class RoundRenderUtils {
             double sin = Math.sin(angle);
             double cos = Math.cos(angle);
 
-            outerPts[s] = new Vec3d(
+            outerPts[s] = new Vec3(
                     cx + sin * outerRadius,
                     cy,
                     cz + cos * outerRadius);
 
-            innerPts[s] = new Vec3d(
+            innerPts[s] = new Vec3(
                     cx + sin * innerRadius,
                     cy,
                     cz + cos * innerRadius);
@@ -75,7 +75,7 @@ public class RoundRenderUtils {
     }
 
     public static void renderCircle(Render3DEvent event, double radius, double thickness,
-            BlockPos origin, Color color) {
+                                    BlockPos origin, Color color) {
         renderCircle(event, radius, thickness, origin.getX(), origin.getY(), origin.getZ(), color);
     }
 
@@ -94,10 +94,10 @@ public class RoundRenderUtils {
                 double phi1 = 2.0 * Math.PI * lon / verticalSteps;
                 double phi2 = 2.0 * Math.PI * (lon + 1) / verticalSteps;
 
-                Vec3d p1 = spherePoint(cx, cy, cz, radius, theta1, phi1);
-                Vec3d p2 = spherePoint(cx, cy, cz, radius, theta1, phi2);
-                Vec3d p3 = spherePoint(cx, cy, cz, radius, theta2, phi2);
-                Vec3d p4 = spherePoint(cx, cy, cz, radius, theta2, phi1);
+                Vec3 p1 = spherePoint(cx, cy, cz, radius, theta1, phi1);
+                Vec3 p2 = spherePoint(cx, cy, cz, radius, theta1, phi2);
+                Vec3 p3 = spherePoint(cx, cy, cz, radius, theta2, phi2);
+                Vec3 p4 = spherePoint(cx, cy, cz, radius, theta2, phi1);
 
                 event.renderer.triangles.ensureQuadCapacity();
 
@@ -113,18 +113,18 @@ public class RoundRenderUtils {
     }
 
     public static void renderSphere(Render3DEvent event, double radius, int gradation,
-            BlockPos origin, Color color) {
+                                    BlockPos origin, Color color) {
         renderSphere(event, radius, gradation, origin.getX(), origin.getY(), origin.getZ(), color);
     }
 
-    private static Vec3d spherePoint(double cx, double cy, double cz, double r,
-            double theta, double phi) {
+    private static Vec3 spherePoint(double cx, double cy, double cz, double r,
+                                    double theta, double phi) {
         double sinTheta = Math.sin(theta);
 
         double x = cx + r * sinTheta * Math.cos(phi);
         double y = cy + r * Math.cos(theta);
         double z = cz + r * sinTheta * Math.sin(phi);
 
-        return new Vec3d(x, y, z);
+        return new Vec3(x, y, z);
     }
 }
