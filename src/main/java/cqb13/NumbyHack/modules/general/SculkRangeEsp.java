@@ -1,4 +1,3 @@
-// TODO(Ravel): Failed to fully resolve file: null cannot be cast to non-null type com.intellij.psi.PsiJavaCodeReferenceElement
 package cqb13.NumbyHack.modules.general;
 
 import java.util.ArrayList;
@@ -23,6 +22,7 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
@@ -205,7 +205,7 @@ public class SculkRangeEsp extends Module {
 
     private boolean hasRedstoneOutput(Level world, BlockPos sensorPos) {
         for (Direction dir : Direction.values()) {
-            BlockPos adjacentPos = sensorPos.offset(dir);
+            BlockPos adjacentPos = sensorPos.relative(dir);
             BlockState state = world.getBlockState(adjacentPos);
             Block block = state.getBlock();
 
@@ -216,18 +216,18 @@ public class SculkRangeEsp extends Module {
 
             // comparator coming out of sensor
             if (block instanceof ComparatorBlock) {
-                Direction facing = state.get(ComparatorBlock.FACING);
+                Direction facing = state.getValue(ComparatorBlock.FACING);
 
-                if (adjacentPos.offset(facing.getOpposite()).equals(sensorPos)) {
+                if (adjacentPos.relative(facing.getOpposite()).equals(sensorPos)) {
                     return true;
                 }
             }
 
             // observer observing sensor
             if (block instanceof ObserverBlock) {
-                Direction facing = state.get(ObserverBlock.FACING);
+                Direction facing = state.getValue(ObserverBlock.FACING);
 
-                if (adjacentPos.offset(facing).equals(sensorPos)) {
+                if (adjacentPos.relative(facing).equals(sensorPos)) {
                     return true;
                 }
             }
@@ -236,13 +236,13 @@ public class SculkRangeEsp extends Module {
         return false;
     }
 
-    private boolean hasShriekerInRange(World world, BlockPos sensorPos, SensorType sensorType) {
+    private boolean hasShriekerInRange(Level world, BlockPos sensorPos, SensorType sensorType) {
         int range = switch (sensorType) {
             case Regular -> 8;
             case Calibrated -> 16;
         };
 
-        for (BlockPos checkPos : BlockPos.iterateOutwards(sensorPos, range, range, range)) {
+        for (BlockPos checkPos : BlockPos.withinManhattan(sensorPos, range, range, range)) {
             BlockState state = world.getBlockState(checkPos);
 
             if (state.getBlock() instanceof SculkShriekerBlock) {
@@ -258,7 +258,7 @@ public class SculkRangeEsp extends Module {
         if (!Utils.canUpdate())
             return;
 
-        if (hideWhenSneaking.get() && mc.player.isSneaking()) {
+        if (hideWhenSneaking.get() && mc.player.isShiftKeyDown()) {
             return;
         }
 
@@ -268,7 +268,7 @@ public class SculkRangeEsp extends Module {
                     continue;
 
                 BlockPos playerPos = new BlockPos(mc.player.getBlockX(), sensor.pos.getY(), mc.player.getBlockZ());
-                if (!playerPos.isWithinDistance(sensor.pos, renderDistance.get() * 16))
+                if (!playerPos.closerThan(sensor.pos, renderDistance.get() * 16))
                     continue;
 
                 double radius = (sensor.sensorType() == SensorType.Calibrated) ? 16 : 8;
@@ -276,7 +276,7 @@ public class SculkRangeEsp extends Module {
                 boolean useSphere = false;
 
                 if (smartRendering.get()) {
-                    double distance = mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(sensor.pos));
+                    double distance = mc.player.position().distanceTo(Vec3.atCenterOf(sensor.pos));
                     useSphere = distance <= smartRenderDistance.get();
                 } else {
                     useSphere = shape.get() == Shape.Sphere || shape.get() == Shape.Both;
@@ -304,8 +304,8 @@ public class SculkRangeEsp extends Module {
         int segments = (int) Math.ceil(2 * Math.PI * radius / maxSegmentLength);
         segments = Math.max(16, segments);
 
-        Vec3d[] outerPts = new Vec3d[segments];
-        Vec3d[] innerPts = new Vec3d[segments];
+        Vec3[] outerPts = new Vec3[segments];
+        Vec3[] innerPts = new Vec3[segments];
         SettingColor[] cols = new SettingColor[segments];
 
         boolean both = sensor.hasRedstoneOutput() && sensor.shriekerInRange();
@@ -323,12 +323,12 @@ public class SculkRangeEsp extends Module {
             double sin = Math.sin(angle);
             double cos = Math.cos(angle);
 
-            outerPts[s] = new Vec3d(
+            outerPts[s] = new Vec3(
                     origin.getX() + sin * outerRadius,
                     origin.getY(),
                     origin.getZ() + cos * outerRadius);
 
-            innerPts[s] = new Vec3d(
+            innerPts[s] = new Vec3(
                     origin.getX() + sin * innerRadius,
                     origin.getY(),
                     origin.getZ() + cos * innerRadius);
@@ -401,10 +401,10 @@ public class SculkRangeEsp extends Module {
                 double phi1 = 2.0 * Math.PI * vert / verticalSteps;
                 double phi2 = 2.0 * Math.PI * (vert + 1) / verticalSteps;
 
-                Vec3d p1 = spherePoint(cx, cy, cz, radius, theta1, phi1);
-                Vec3d p2 = spherePoint(cx, cy, cz, radius, theta1, phi2);
-                Vec3d p3 = spherePoint(cx, cy, cz, radius, theta2, phi2);
-                Vec3d p4 = spherePoint(cx, cy, cz, radius, theta2, phi1);
+                Vec3 p1 = spherePoint(cx, cy, cz, radius, theta1, phi1);
+                Vec3 p2 = spherePoint(cx, cy, cz, radius, theta1, phi2);
+                Vec3 p3 = spherePoint(cx, cy, cz, radius, theta2, phi2);
+                Vec3 p4 = spherePoint(cx, cy, cz, radius, theta2, phi1);
 
                 SettingColor color;
                 if (!advanced) {
@@ -433,14 +433,14 @@ public class SculkRangeEsp extends Module {
         }
     }
 
-    private Vec3d spherePoint(double cx, double cy, double cz, double r, double theta, double phi) {
+    private Vec3 spherePoint(double cx, double cy, double cz, double r, double theta, double phi) {
         double sinTheta = Math.sin(theta);
 
         double x = cx + r * sinTheta * Math.cos(phi);
         double y = cy + r * Math.cos(theta);
         double z = cz + r * sinTheta * Math.sin(phi);
 
-        return new Vec3d(x, y, z);
+        return new Vec3(x, y, z);
     }
 
     private record FoundSensor(SensorType sensorType, BlockPos pos, boolean hasRedstoneOutput,
