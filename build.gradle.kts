@@ -28,6 +28,9 @@ dependencies {
     minecraft(libs.minecraft)
     implementation(libs.fabric.loader)
 
+    // Fabric API
+    implementation(libs.fabric.api)
+
     // Meteor
     implementation(libs.meteor.client)
 }

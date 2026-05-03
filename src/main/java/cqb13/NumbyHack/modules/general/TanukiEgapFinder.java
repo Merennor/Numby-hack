@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.levelgen.WorldGenSettings;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -389,9 +390,13 @@ public class TanukiEgapFinder extends Module {
 
     private Long getWorldSeed() {
         if (mc.getSingleplayerServer() != null) {
-            var worldProperties = mc.getSingleplayerServer().getWorldData();
-            if (worldProperties != null) {
-                return worldProperties.worldGenOptions().seed();
+            WorldGenSettings worldGenSettings = mc.getSingleplayerServer()
+                .overworld()
+                .getDataStorage()
+                .get(WorldGenSettings.TYPE);
+
+            if (worldGenSettings != null) {
+                return worldGenSettings.options().seed();
             }
         }
         return null;

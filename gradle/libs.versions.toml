@@ -5,6 +5,7 @@ mod_version = "2.6.24"
 jdk = "25"
 minecraft = "26.1.2"
 fabric-loader = "0.19.2"
+fabric-api = "0.147.0+26.1.2"
 
 # Plugins
 # Loom (https://github.com/FabricMC/fabric-loom)
@@ -17,6 +18,9 @@ meteor = "26.1.2-SNAPSHOT"
 # Fabric base
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-loader" }
+
+# Fabric API
+fabric-api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric-api" }
 
 # Meteor client
 meteor-client = { module = "meteordevelopment:meteor-client", version.ref = "meteor" }

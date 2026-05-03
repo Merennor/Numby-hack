@@ -22,7 +22,7 @@ import net.minecraft.world.item.Items;
 import org.slf4j.Logger;
 
 public class NumbyHack extends MeteorAddon {
-    public static final Category CATEGORY = new Category("Numby Hack", Items.TURTLE_HELMET.getDefaultInstance());
+    public static final Category CATEGORY = new Category("Numby Hack", () -> Items.TURTLE_HELMET.getDefaultInstance());
     public static final HudGroup HUD_GROUP = new HudGroup("Numby Hack");
     public static final Logger LOGGER = LogUtils.getLogger();
 
